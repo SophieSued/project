@@ -1,0 +1,46 @@
+import os
+from fastapi import FastAPI, UploadFile
+from fastapi.responses import JSONResponse
+from keras.models import load_model
+import numpy as np
+from PIL import Image
+
+app = FastAPI()
+
+# Cargar el modelo entrenado
+MODEL_PATH = ""
+model = load_model(MODEL_PATH)
+
+# Definir el directorio donde se guardará el archivo
+UPLOAD_FOLDER = "uploads"
+
+# Definir las clases (0 -> Sano, 1 -> Infectado)
+CLASSES = ["Sano", "Infectado"]
+
+@app.post("/uploadfile/")
+async def create_upload_file(file: UploadFile):
+    try:
+        # Crear la ruta completa del archivo
+        file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+
+        # Guardar el archivo en el sistema
+        with open(file_path, "wb") as f:
+            f.write(await file.read())  # `await` es necesario para manejar la lectura asincrónica del archivo
+        
+        # Cargar y preprocesar la imagen para el modelo
+        img = Image.open(file_path).resize((100, 100))  # Asegúrate de que el tamaño coincida con el modelo
+        img_array = np.array(img) / 255.0  # Normalización si es necesaria
+        img_array = np.expand_dims(img_array, axis=0)  # Añadir la dimensión batch
+
+        # Realizar la predicción
+        prediction = model.predict(img_array)
+        predicted_class = np.argmax(prediction, axis=1)[0]  # Obtener la clase con mayor probabilidad
+
+        # Traducir la clase en 'sano' o 'infectado'
+        result = CLASSES[predicted_class]
+
+        # Responder con la predicción
+        return {"message": "File saved successfully", "prediction": result}
+    
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"Error processing file: {str(e)}"})
