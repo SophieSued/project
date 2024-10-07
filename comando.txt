@@ -1,4 +1,2 @@
 python -m fastapi dev .\main.py
-conn = {
-    host:
-}
+env/Scripts/Activate.ps1
