@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 
 
+
 app = FastAPI()
 
 # Cargar el modelo entrenado
@@ -17,7 +18,7 @@ model = load_model(MODEL_PATH)
 UPLOAD_FOLDER = "uploads" # es la carpeta de uploads en visual
 
 # Definir las clases (0 -> Sano, 1 -> Infectado)
-CLASSES = ["Sano", "Infectado"]
+CLASSES = ["Infectado", "Sano"]
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile):
@@ -30,18 +31,28 @@ async def create_upload_file(file: UploadFile):
         #   f.write(await file.read()) 
 
         # Cargar y preprocesar la imagen para el modelo
-        img = Image.open(file.file).resize((100, 100))  
-        img_array = np.array(img) / 255.0  
+        img = Image.open(file.file)  
+        # img = img.convert('RGB')
+        img = img.resize((100, 100))
+        img_array = np.array(img) # / 255.0  
         img_array = np.expand_dims(img_array, axis=0)  
         # Realizar la predicción
         prediction = model.predict(img_array)
-        predicted_class = np.argmax(prediction, axis=1)[0]  
+        print(prediction)
+        predicted_class = np.argmax(prediction, axis=1)[0] 
+
+        prediction = model.predict(img_array)
+        print("Predicciones del modelo:", prediction) 
+
 
         # Traducir la clase en 'sano' o 'infectado'
         result = CLASSES[predicted_class]
 
+        print(result)
+
         # Responder con la predicción
-        return {"message": "File saved successfully", "prediction": result}
+        return {"message": "File saved successfully", "prediction": result, "model output": str(prediction)}
     
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": f"Error processing file: {str(e)}"})
+
