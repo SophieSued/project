@@ -36,6 +36,7 @@ async def create_upload_file(file: UploadFile):
         img = img.resize((100, 100))
         img_array = np.array(img) # / 255.0  
         img_array = np.expand_dims(img_array, axis=0)  
+        
         # Realizar la predicción
         prediction = model.predict(img_array)
         print(prediction)
