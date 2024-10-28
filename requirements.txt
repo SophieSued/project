@@ -1,8 +1,7 @@
 tensorflow==2.17.0
 numpy==1.26.4
 pandas==2.2.2
-fastapi
+fastapi[standard]
 uvicorn
 Pillow
 python-multipart 
-fastapi[standard]
