@@ -1,6 +1,6 @@
-import os
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
@@ -16,11 +16,15 @@ model = load_model(MODEL_PATH)
 # Definir las clases (0 -> Sano, 1 -> Infectado)
 CLASSES = ["Infectado", "Sano"]
 
+# Definir el esquema del body para la URL
+class ImageURL(BaseModel):
+    url: str
+
 @app.post("/analyze_image/")
-async def analyze_image(url: str):
+async def analyze_image(image: ImageURL):
     try:
         # Descargar la imagen desde la URL
-        response = requests.get(url)
+        response = requests.get(image.url)
         if response.status_code != 200:
             raise HTTPException(status_code=400, detail="No se pudo descargar la imagen")
 
